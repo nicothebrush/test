@@ -22,6 +22,46 @@
 import os
 import erppeek
 import ConfigParser
+import xlsxwriter
+
+# ---------------------------------------------------------------------
+# Export XLSX file:
+# ---------------------------------------------------------------------
+# Excel writing:     
+def xls_write_row(WS, row, row_data, format_cell):
+    ''' Print line in XLS file            
+    '''
+    ''' Write line in excel file
+    '''
+    col = 0
+    for item in row_data:
+        WS.write(row, col, item, format_cell)
+        col += 1
+    return True
+
+# Open file and write header
+file_out = 'log.xslx'
+WB = xlsxwriter.Workbook(file_out)
+WS = {
+    'Costi' = WB.add_worksheet('Costi'),
+    'Ultimo' = WB.add_worksheet('Ultimo'),
+    }
+counter = {
+    'Costi': 0,
+    'Ultimo': 0, 
+    }    
+
+# Header
+row = counter['Costo']
+counter['Costo'] += 1
+xls_write_row('Costo', row, (
+    'CL',
+    'Q.',
+    'Data',
+    'Detail',
+    'Mexal',
+    'ODOO',
+    ))
 
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
@@ -60,7 +100,9 @@ def get_last_cost(raw_material_price, default_code, job_date, last_history):
     if not last:
         comment = 'No cost'
         
-    print comment, default_code, job_date, date, last
+    row = counter['Ultimo']
+    counter['Ultimo'] += 1
+    xls_write_row('Ultimo', row, (comment, default_code, job_date, date, last))
     return last
     
 def get_cost(mrp, raw_material_price, current_cl, last_history):
@@ -217,14 +259,17 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             unload_cost_total, total, unload_cost)
 
     for document in unload_document:
-        print (
-            document[0], 
-            document[1], 
-            document[2], 
-            cost_detail, 
-            mrp_current_cost, 
-            unload_cost,
-            )
+        row = counter['Costo']
+        counter['Costo'] += 1
+        xls_write_row('Costo', row, (
+            document[0], # CL
+            document[1], # Q. 
+            document[2], # Date
+            cost_detail, # Detail
+            mrp_current_cost, # Mexal
+            unload_cost, # ODOO
+            ))
+        print row, document[0], document[1], unload_cost
 
 # -----------------------------------------------------------------------------
 # Connect to ODOO:
