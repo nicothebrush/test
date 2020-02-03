@@ -29,8 +29,6 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data):
-    ''' Print line in XLS file            
-    '''
     ''' Write line in excel file
     '''
     col = 0

@@ -29,8 +29,6 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data):
-    ''' Print line in XLS file            
-    '''
     ''' Write line in excel file
     '''
     col = 0
@@ -353,3 +351,5 @@ mrp_ids = mrp_pool.search([
 
 for mrp in mrp_pool.browse(mrp_ids):
     get_cost(mrp, raw_material_price, current_cl, last_history)
+
+WB.close()    
