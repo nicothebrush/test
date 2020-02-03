@@ -135,6 +135,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                 partial.accounting_cl_code,
                 partial.product_qty,
                 l.real_date_planned[:10],
+                partial.accounting_cl_code,
                 ))
 
     cost_detail += u'\nTotale carichi: %s\n' % total
@@ -256,9 +257,11 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
     cost_detail += u'EUR %s : q. %s = EUR/unit %s (carico)\n' % (
             unload_cost_total, total, unload_cost)
 
+    res = set()
     for document in unload_document:
         row = counter['Costo']
         counter['Costo'] += 1
+        res.add(document[3]) # CL code
         xls_write_row('Costo', row, (
             document[0], # CL
             document[1], # Q. 
@@ -268,6 +271,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             unload_cost, # ODOO
             ))
         print row, document[0], document[1], unload_cost
+    return res    
 
 # -----------------------------------------------------------------------------
 # Connect to ODOO:
@@ -324,6 +328,9 @@ for line in open('bfpan.csv', 'r'):
 # Load current CL status
 # -----------------------------------------------------------------------------
 current_cl = {}
+cl_mexal = set()
+cl_odoo = set()
+
 for line in open('cl2019.csv', 'r'):
     line = line.strip()
     if not line:
@@ -331,6 +338,7 @@ for line in open('cl2019.csv', 'r'):
     row = line.split(';')
 
     # Extract data:
+    number = cl_mexal.add(row[1].strip())
     default_code = row[5].strip()
     try:
         cost = float(row[8].strip().replace(',', '.'))
@@ -338,7 +346,6 @@ for line in open('cl2019.csv', 'r'):
         cost = 0.0
         print 'CL No price: %s' % line
     current_cl[default_code] = cost
-
 # -----------------------------------------------------------------------------
 # Check production
 # -----------------------------------------------------------------------------
@@ -349,7 +356,11 @@ mrp_ids = mrp_pool.search([
     ('date_planned', '>=', '2019-01-01'),
     ])
 
-for mrp in mrp_pool.browse(mrp_ids):
-    get_cost(mrp, raw_material_price, current_cl, last_history)
+for mrp in mrp_pool.browse(mrp_id):
+    cl = get_cost(mrp, raw_material_price, current_cl, last_history)
+    cl_odoo.union(cl)
+
+print 'Differenza ODOO - Mexal', cl_odoo.difference(cl_mexal)
+print 'Differenza Mexal - ODOO', cl_mexal.difference(cl_odoo)
 
 WB.close()    
