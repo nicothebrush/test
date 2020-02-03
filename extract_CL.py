@@ -27,6 +27,8 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Export XLSX file:
 # ---------------------------------------------------------------------
+demo = False
+
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data):
     ''' Write line in excel file
@@ -55,11 +57,17 @@ counter['Costo'] += 1
 xls_write_row('Costo', row, (
     'CL',
     'Q.',
+    'Q. scar.',
+    'Stato',
+    
     'Data',
     'Detail',
     'Mexal',
     'ODOO',
+    'Diff.',
+    'Status',
     ))
+
 
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
@@ -112,7 +120,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
     mrp_current_cost = current_cl.get(mrp.product_id.default_code, 0.0)
     
     cost_detail = u'' # To update MRP at the end of procedure
-    cost_detail_subtotal = unload_cost_total = total = 0.0
+    cost_detail_subtotal = unload_cost_total = total = total_unload = 0.0
     
     # Partial (calculated every load on all production)                
     cost_detail += u'Lavorazioni toccate:\n'
@@ -172,6 +180,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                     lavoration.real_date_planned[:10],
                     last_history,
                     )
+                total_unload += unload.quantity
                 subtotal = last_cost * unload.quantity
                 unload_cost_total += subtotal
                 cost_detail_subtotal += subtotal
@@ -257,18 +266,39 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
     cost_detail += u'EUR %s : q. %s = EUR/unit %s (carico)\n' % (
             unload_cost_total, total, unload_cost)
 
-    res = set()
-    for document in unload_document:
+    res = set()    
+    for document in unload_document:        
         row = counter['Costo']
         counter['Costo'] += 1
+        
+        difference = mrp_current_cost - unload_cost
+        if difference <= 0.03:
+            status = ''
+        elif difference <= 1.0:
+            status = 'X'
+        elif difference <= 10.0:
+            status = 'XX'
+        elif difference <= 100.0:
+            status = 'XXX'
+        elif difference <= 1000.0:
+            status = 'XXXX'
+            
+        if not mrp_current_cost:
+            print 'No Mexal'
+            continue    
+
         res.add(document[3]) # CL code
         xls_write_row('Costo', row, (
             document[0], # CL
             document[1], # Q. 
+            total_unload, # Q. unload
+            'X' if (total_unload - document[1]) / document[1] > 0.1 else '',
             document[2], # Date
             cost_detail, # Detail
             mrp_current_cost, # Mexal
             unload_cost, # ODOO
+            mrp_current_cost - unload_cost,
+            status,
             ))
         print row, document[0], document[1], unload_cost
     return res    
@@ -355,7 +385,9 @@ i = 0
 mrp_ids = mrp_pool.search([
     ('date_planned', '>=', '2019-01-01'),
     ])
-
+if demo:
+    mrp_ids = mrp_ids[:2]
+    
 for mrp in mrp_pool.browse(mrp_ids):
     cl = get_cost(mrp, raw_material_price, current_cl, last_history)
     cl_odoo.union(cl)
