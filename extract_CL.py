@@ -56,7 +56,9 @@ row = counter['Costo']
 counter['Costo'] += 1
 xls_write_row('Costo', row, (
     'CL',
+    '#',
     'Q.',
+    'MRP Q.',
     'Q. scar.',
     'Stato',
     
@@ -67,7 +69,6 @@ xls_write_row('Costo', row, (
     'Diff.',
     'Status',
     ))
-
 
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
@@ -139,11 +140,15 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                 partial.product_qty,
                 )
 
+    # Loop for print part (for total purpose)
+    for l in mrp.workcenter_lines:
+        for partial in l.load_ids:
             unload_document.append((
                 partial.accounting_cl_code,
                 partial.product_qty,
                 l.real_date_planned[:10],
                 partial.accounting_cl_code,
+                total,
                 ))
 
     cost_detail += u'\nTotale carichi: %s\n' % total
@@ -262,15 +267,13 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
     else:
         unload_cost = 0.0    
 
+    cost_detail += u'\nPeso materie prime: %s\n' % total_unload
     cost_detail += u'\nCosto totale:\n'
     cost_detail += u'EUR %s : q. %s = EUR/unit %s (carico)\n' % (
             unload_cost_total, total, unload_cost)
 
     res = set()    
     for document in unload_document:        
-        row = counter['Costo']
-        counter['Costo'] += 1
-        
         difference = mrp_current_cost - unload_cost
         if difference <= 0.03:
             status = ''
@@ -287,12 +290,17 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             print 'No Mexal'
             continue    
 
+        row = counter['Costo']
+        counter['Costo'] += 1
+
         res.add(document[3]) # CL code
         xls_write_row('Costo', row, (
             document[0], # CL
+            len(unload_document), # Number of CL
+            document[4], # MRP total
             document[1], # Q. 
             total_unload, # Q. unload
-            'X' if (total_unload - document[1]) / document[1] > 0.1 else '',
+            'X' if (total_unload - document[4]) / document[4] > 0.1 else '',
             document[2], # Date
             cost_detail, # Detail
             mrp_current_cost, # Mexal
