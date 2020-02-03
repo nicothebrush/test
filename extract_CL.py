@@ -207,7 +207,10 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                 warning.append('Error calculating pallet price')
 
     cost_detail += u'Totale imballi: %s\n' % cost_detail_subtotal
-    unload_cost = unload_cost_total / total
+    if total:
+        unload_cost = unload_cost_total / total
+    else:
+        unload_cost = 0.0    
 
     cost_detail += u'\nCosto totale:\n'
     cost_detail += u'EUR %s : q. %s = EUR/unit %s (carico)\n' % (
