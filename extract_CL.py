@@ -28,14 +28,14 @@ import xlsxwriter
 # Export XLSX file:
 # ---------------------------------------------------------------------
 # Excel writing:     
-def xls_write_row(WS, row, row_data, format_cell):
+def xls_write_row(ws_name, row, row_data):
     ''' Print line in XLS file            
     '''
     ''' Write line in excel file
     '''
     col = 0
     for item in row_data:
-        WS.write(row, col, item, format_cell)
+        WS[ws_name].write(row, col, item)
         col += 1
     return True
 
@@ -43,11 +43,11 @@ def xls_write_row(WS, row, row_data, format_cell):
 file_out = 'log.xslx'
 WB = xlsxwriter.Workbook(file_out)
 WS = {
-    'Costi' = WB.add_worksheet('Costi'),
-    'Ultimo' = WB.add_worksheet('Ultimo'),
+    'Costo': WB.add_worksheet('Costo'),
+    'Ultimo': WB.add_worksheet('Ultimo'),
     }
 counter = {
-    'Costi': 0,
+    'Costo': 0,
     'Ultimo': 0, 
     }    
 
@@ -353,3 +353,5 @@ mrp_ids = mrp_pool.search([
 
 for mrp in mrp_pool.browse(mrp_ids):
     get_cost(mrp, raw_material_price, current_cl, last_history)
+
+WB.close()    
