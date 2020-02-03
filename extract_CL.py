@@ -38,7 +38,7 @@ def xls_write_row(ws_name, row, row_data):
     return True
 
 # Open file and write header
-file_out = 'log.xslx'
+file_out = 'log.xlsx'
 WB = xlsxwriter.Workbook(file_out)
 WS = {
     'Costo': WB.add_worksheet('Costo'),
@@ -356,7 +356,7 @@ mrp_ids = mrp_pool.search([
     ('date_planned', '>=', '2019-01-01'),
     ])
 
-for mrp in mrp_pool.browse(mrp_id):
+for mrp in mrp_pool.browse(mrp_ids):
     cl = get_cost(mrp, raw_material_price, current_cl, last_history)
     cl_odoo.union(cl)
 
