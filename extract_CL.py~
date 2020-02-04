@@ -158,7 +158,8 @@ port = config.get('dbaccess', 'port')   # verify if it's necessary: getint
 #                                   UTILITY:
 # -----------------------------------------------------------------------------
 def get_last_cost(
-        raw_material_price, default_code, job_date, last_history, mrp_cost):
+        raw_material_price, default_code, job_date, last_history, mrp_cost,
+        odoo_standard):
     """ Extract last cost:
     """
     job_date = job_date[:10].replace('-', '')
@@ -183,6 +184,10 @@ def get_last_cost(
         comment = 'MRP detail'
         
     if not last:
+        last = odoo_standard.get(default_code, 0.0)
+        comment = 'ODOO standard'
+        
+    if not last:
         comment = 'No cost'
         
     row = counter['Ultimo']
@@ -193,7 +198,7 @@ def get_last_cost(
         xls_format['text'])
     return last
     
-def get_cost(mrp, raw_material_price, current_cl, last_history):
+def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     """ Get total for production closed
     """
     warning = []
@@ -274,6 +279,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                     lavoration.real_date_planned[:10],
                     last_history,
                     mrp_cost,
+                    odoo_standard,
                     )
                 if default_code[:2] != 'VV' and not last_cost:
                     warning.append('Material with price 0')
@@ -314,6 +320,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                         load.date,
                         last_history,
                         mrp_cost,
+                        odoo_standard,
                         )
                     if not last_cost:
                         warning.append('Package with price 0')
@@ -346,6 +353,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                         load.date,
                         last_history,
                         mrp_cost,
+                        odoo_standard,
                         )
                     if not last_cost:
                         warning.append('Pallet with price 0')
@@ -446,6 +454,29 @@ odoo = erppeek.Client(
     )
 print 'Connect with ODOO: %s' % odoo    
 
+# -----------------------------------------------------------------------------
+# Standard cost from ODOO
+# -----------------------------------------------------------------------------
+odoo_standard = {}
+for line in open('./data/odoo_standard.csv', 'r'):
+    line = line.strip()
+    if not line:
+        continue
+    row = line.split('|')
+
+    # Extract data:
+    default_code = row[0].strip()
+    try:
+        cost = float(row[1].strip().replace(',', '.'))
+    except:
+        cost = 0.0
+        print 'No last cost: %s' % line
+    odoo_standard[default_code] = cost
+print odoo_standard
+import pdb; pdb.set_trace()
+# -----------------------------------------------------------------------------
+# Last cost from Mexal
+# -----------------------------------------------------------------------------
 last_history = {}
 for line in open('./data/cuppan.csv', 'r'):
     line = line.strip()
@@ -522,7 +553,8 @@ if demo:
     mrp_ids = mrp_ids[:2]
     
 for mrp in mrp_pool.browse(mrp_ids):
-    cl = get_cost(mrp, raw_material_price, current_cl, last_history)
+    cl = get_cost(mrp, raw_material_price, current_cl, last_history, 
+    odoo_standard)
     cl_odoo.union(cl)
 
 print 'Differenza ODOO - Mexal', cl_odoo.difference(cl_mexal)
