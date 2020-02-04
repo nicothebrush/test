@@ -27,7 +27,7 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Export XLSX file:
 # ---------------------------------------------------------------------
-demo = True
+demo = False
 
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data, row_format=None):
@@ -222,13 +222,15 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
         cost_detail += u'Lavoration %s:\n' % lavoration.name
         for unload in lavoration.bom_material_ids:
             try:
+                default_code = unload.product_id.default_code or '?'
+
                 last_cost = get_last_cost(
                     raw_material_price, 
                     unload.product_id.default_code,
                     lavoration.real_date_planned[:10],
                     last_history,
                     )
-                if not last_cost:
+                if default_code[:2] != 'VV' and not last_cost:
                     warning.append('Material with price 0')
     
                 total_unload += unload.quantity
@@ -238,7 +240,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                                     
                 cost_detail += \
                     u' - %s: EUR %s x q. %s = %s\n' % (
-                        unload.product_id.default_code or '?',
+                        default_code,
                         last_cost,
                         unload.quantity,
                         subtotal,
