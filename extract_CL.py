@@ -27,7 +27,7 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Export XLSX file:
 # ---------------------------------------------------------------------
-demo = False
+demo = True
 
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data):
@@ -56,9 +56,10 @@ row = counter['Costo']
 counter['Costo'] += 1
 xls_write_row('Costo', row, (
     'CL',
-    '#',
     'Q.',
+    'MRP',
     'MRP Q.',
+    '#',
     'Q. scar.',
     'Stato',
     
@@ -274,6 +275,13 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
 
     res = set()    
     for document in unload_document:        
+        if not mrp_current_cost:
+            print 'No Mexal'
+            continue    
+
+        res.add(document[3]) # CL code
+
+        # Difference status:
         difference = mrp_current_cost - unload_cost
         if difference <= 0.03:
             status = ''
@@ -285,22 +293,27 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             status = 'XXX'
         elif difference <= 1000.0:
             status = 'XXXX'
-            
-        if not mrp_current_cost:
-            print 'No Mexal'
-            continue    
+        
+        # Weight status:
+        if (abs(total_unload - document[4]) / document[4]) > 0.1:
+            weight_status = 'X'
+        else:
+            weight_status = ''
 
+        # Counter:
         row = counter['Costo']
         counter['Costo'] += 1
 
-        res.add(document[3]) # CL code
-        xls_write_row('Costo', row, (
+        # Write line:
+        xls_write_row('Costo', row, (        
             document[0], # CL
+            document[1], # Q. 
+
+            mrp.name,
             len(unload_document), # Number of CL
             document[4], # MRP total
-            document[1], # Q. 
             total_unload, # Q. unload
-            'X' if (total_unload - document[4]) / document[4] > 0.1 else '',
+            weight_status,
             document[2], # Date
             cost_detail, # Detail
             mrp_current_cost, # Mexal
