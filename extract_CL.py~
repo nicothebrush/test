@@ -94,7 +94,7 @@ counter = {
 xls_write_row('Costo', 0, (
     'CL', 'Q.',
     'MRP', '#',
-    'MRP Q.', 'Q. scar.', 'Stato',    
+    'MRP Q.', 'Q. scar.', 'Diff.', 'Stato',    
     'Data', 'Detail',    
     'Mexal', 'ODOO', 'Diff.', 'Status',
     'Warning',
@@ -103,7 +103,7 @@ xls_write_row('Costo', 0, (
 xls_row_width('Costo', [
     10, 10, 
     10, 2, 
-    10, 10, 5, 
+    10, 10, 8, 5, 
     10, 40, 
     15, 15, 15, 5,
     50,
@@ -365,7 +365,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             status = 'XXXXX'            
         
         # Weight status:
-        if (abs(total_unload - document[4]) / document[4]) > 0.1:
+        weight_difference = total_unload - document[4]
+        if (abs(weight_difference) / document[4]) > 0.1:
             weight_status = 'X'
         else:
             weight_status = ''
@@ -384,7 +385,9 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
 
             document[4], # MRP total
             total_unload, # Q. unload
+            weight_difference, 
             weight_status,
+            
             document[2], # Date
             cost_detail, # Detail
             mrp_current_cost, # Mexal
