@@ -94,7 +94,7 @@ counter = {
 xls_write_row('Costo', 0, (
     'CL', 'Q.',
     'MRP', '#',
-    'MRP Q.', 'Q. scar.', 'Diff.', 'Stato',    
+    'MRP scar.', 'MRP car.', 'Diff.', 'Stato',    
     'Data', 'Detail',    
     'Mexal', 'ODOO', 'Diff.', 'Status',
     'Warning',
@@ -383,8 +383,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             mrp.name,
             len(unload_document), # Number of CL
 
-            document[4], # MRP total
             total_unload, # Q. unload
+            document[4], # MRP total
             weight_difference, 
             weight_status,
             
