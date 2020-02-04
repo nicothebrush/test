@@ -51,13 +51,9 @@ def extract_price_mrp(mrp):
     """
     res = {}
     cost_detail = mrp.cost_detail
-    if not cost_detail:
-        print 'detail not found for %s' % mrp.name
-    else:
+    if cost_detail:
         cost_detail = cost_detail.replace('<br/>', '\n')
         for line in cost_detail.split('\n'):
-            
-            #' - A0401: \u20ac 0.1195 x q. 1440.0 '
             if line.startswith(' - '):
                 default_code = line[3:].split(':')[0]
                 cost = float((line[3:].split(':')[-1].split(
