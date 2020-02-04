@@ -100,6 +100,7 @@ xls_format = {
 WS = {
     'Costo': WB.add_worksheet('Costo'),
     'Ultimo': WB.add_worksheet('Ultimo'),
+    'Senza': WB.add_worksheet('Senza'),
     }
 counter = {
     'Costo': 1,
@@ -138,6 +139,7 @@ xls_row_width('Ultimo', [
     30, 15, 10, 10, 12,
     ])
 
+empty_cost = []
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
 # -----------------------------------------------------------------------------
@@ -161,30 +163,36 @@ def get_last_cost(
     job_date = job_date[:10].replace('-', '')
     last = first = 0.0
     date = 'Non trovata'
-    for date in sorted(raw_material_price.get(default_code, [])):
-        if not first:
-            first = raw_material_price[default_code][date]
+
+    comment = ''
+    if default_code.startswith('VV'):
+        comment = 'Not considered'        
+    else:    
+        for date in sorted(raw_material_price.get(default_code, [])):
+            if not first:
+                first = raw_material_price[default_code][date]
+                
+            if job_date > date:
+                last = raw_material_price[default_code][date]                        
+            else:
+                break
+
+        if not last:
+            last = last_history.get(default_code, 0.0)
+            comment = 'Use Mexal last cost'
+
+        if not last:
+            last = mrp_cost.get(default_code, 0.0)
+            comment = 'Use ODOO MRP detail'
             
-        if job_date > date:
-            last = raw_material_price[default_code][date]                        
-        else:
-            break
-
-    comment = ''        
-    if not last:
-        last = last_history.get(default_code, 0.0)
-        comment = 'Use history'
-
-    if not last:
-        last = mrp_cost.get(default_code, 0.0)
-        comment = 'MRP detail'
-        
-    if not last:
-        last = odoo_standard.get(default_code, 0.0)
-        comment = 'ODOO standard'
-        
-    if not last:
-        comment = 'No cost'
+        if not last:
+            last = odoo_standard.get(default_code, 0.0)
+            comment = 'Use ODOO standard cost'
+            
+        if not last:
+            if default_code not in empty_cost:
+                empty_cost.append(default_code)
+            comment = 'No cost present'
         
     row = counter['Ultimo']
     counter['Ultimo'] += 1
@@ -555,4 +563,12 @@ for mrp in mrp_pool.browse(mrp_ids):
 print 'Differenza ODOO - Mexal', cl_odoo.difference(cl_mexal)
 print 'Differenza Mexal - ODOO', cl_mexal.difference(cl_odoo)
 
+row = -1
+
+for empty in empty_cost:
+    row += 1 
+    xls_write_row('Ultimo', row, (
+        empty,
+        ), xls_format['text'])
+    
 WB.close()    
