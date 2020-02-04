@@ -27,7 +27,7 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Export XLSX file:
 # ---------------------------------------------------------------------
-demo = True
+demo = False
 
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data, row_format=None):
@@ -129,9 +129,9 @@ def get_last_cost(raw_material_price, default_code, job_date, last_history):
     """ Extract last cost:
     """
     job_date = job_date[:10].replace('-', '')
-    last = 0.0
-    first = 0.0
-    for date in sorted(raw_material_price[default_code]):
+    last = first = 0.0
+    date = 'Non trovata'
+    for date in sorted(raw_material_price.get(default_code, [])):
         if not first:
             first = raw_material_price[default_code][date]
             
