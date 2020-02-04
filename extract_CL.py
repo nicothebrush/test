@@ -46,6 +46,26 @@ def xls_row_width(ws_name, width_list):
         WS[ws_name].set_column(col, col, width_list[col])
     return True
 
+def extract_price_mrp(mrp):
+    """ Extract raw material from log 
+    """
+    res = {}
+    cost_detail = mrp.cost_detail
+    if not cost_detail:
+        print 'detail not found for %s' % mrp.name
+    else:
+        cost_detail = cost_detail.replace('<br/>', '\n')
+        for line in cost_detail.split('\n'):
+            
+            #' - A0401: \u20ac 0.1195 x q. 1440.0 '
+            if line.startswith(' - '):
+                default_code = line[3:].split(':')[0]
+                cost = float((line[3:].split(':')[-1].split(
+                    'x')[0].strip().split(' ')[-1]))
+                
+                res[default_code] = cost
+    return res
+
 # Open file and write header
 file_out = 'log.xlsx'
 WB = xlsxwriter.Workbook(file_out)
@@ -137,7 +157,8 @@ port = config.get('dbaccess', 'port')   # verify if it's necessary: getint
 # -----------------------------------------------------------------------------
 #                                   UTILITY:
 # -----------------------------------------------------------------------------
-def get_last_cost(raw_material_price, default_code, job_date, last_history):
+def get_last_cost(
+        raw_material_price, default_code, job_date, last_history, mrp_cost):
     """ Extract last cost:
     """
     job_date = job_date[:10].replace('-', '')
@@ -151,11 +172,16 @@ def get_last_cost(raw_material_price, default_code, job_date, last_history):
             last = raw_material_price[default_code][date]                        
         else:
             break
+
     comment = ''        
     if not last:
         last = last_history.get(default_code, 0.0)
         comment = 'Use history'
 
+    if not last:
+        last = mrp_cost.get(default_code, 0.0)
+        comment = 'MRP detail'
+        
     if not last:
         comment = 'No cost'
         
@@ -172,6 +198,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
     """
     warning = []
     unload_document = []
+    
+    mrp_cost = extract_price_mrp(mrp)  # Extract cost from mrp detail
 
     mrp_current_cost = current_cl.get(mrp.product_id.default_code, 0.0)
     
@@ -183,6 +211,10 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
     cost_line_ref = u''
     wc = False
     for l in mrp.workcenter_lines:
+        if l.state != 'done':
+            print '%s Not in done state' % l.name
+            continue
+
         if not wc:
             wc = l.workcenter_id
         for partial in l.load_ids:
@@ -241,6 +273,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                     unload.product_id.default_code,
                     lavoration.real_date_planned[:10],
                     last_history,
+                    mrp_cost,
                     )
                 if default_code[:2] != 'VV' and not last_cost:
                     warning.append('Material with price 0')
@@ -280,6 +313,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                         link_product.default_code,
                         load.date,
                         last_history,
+                        mrp_cost,
                         )
                     if not last_cost:
                         warning.append('Package with price 0')
@@ -311,6 +345,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                         pallet_in.default_code,
                         load.date,
                         last_history,
+                        mrp_cost,
                         )
                     if not last_cost:
                         warning.append('Pallet with price 0')
