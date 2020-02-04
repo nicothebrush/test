@@ -27,7 +27,7 @@ import xlsxwriter
 # ---------------------------------------------------------------------
 # Export XLSX file:
 # ---------------------------------------------------------------------
-demo = False
+demo = True
 
 # Excel writing:     
 def xls_write_row(ws_name, row, row_data):
