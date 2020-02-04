@@ -30,18 +30,54 @@ import xlsxwriter
 demo = True
 
 # Excel writing:     
-def xls_write_row(ws_name, row, row_data):
+def xls_write_row(ws_name, row, row_data, row_format=None):
     ''' Write line in excel file
     '''
     col = 0
     for item in row_data:
-        WS[ws_name].write(row, col, item)
+        WS[ws_name].write(row, col, item, row_format)
         col += 1
+    return True
+
+def xls_row_width(ws_name, width_list):
+    ''' Write line in excel file
+    '''
+    for col in range(len(width_list)):
+        WS[ws_name].set_column(col, col, width_list[col])
     return True
 
 # Open file and write header
 file_out = 'log.xlsx'
 WB = xlsxwriter.Workbook(file_out)
+
+xls_format = {
+    'header': WB.add_format({
+        'bold': True,
+        'font_name': 'Arial',
+        'font_size': 9,
+        'align': 'center',
+        'bg_color': 'EEEEEE',
+        'border': 1,
+        #'num_format': '0.00',
+        }),
+    'text': WB.add_format({
+        'font_name': 'Arial',
+        'font_size': 9,
+        'align': 'center',
+        #'bg_color': 'EEEEEE',
+        'border': 1,
+        #'num_format': '0.00',
+        }),
+    'number': WB.add_format({
+        'font_name': 'Arial',
+        'font_size': 9,
+        'align': 'center',
+        #'bg_color': 'EEEEEE',
+        'border': 1,
+        'num_format': '0.00',
+        }),
+        
+    }
 WS = {
     'Costo': WB.add_worksheet('Costo'),
     'Ultimo': WB.add_worksheet('Ultimo'),
@@ -57,9 +93,11 @@ counter['Costo'] += 1
 xls_write_row('Costo', row, (
     'CL',
     'Q.',
+
     'MRP',
-    'MRP Q.',
     '#',
+
+    'MRP Q.',
     'Q. scar.',
     'Stato',
     
@@ -69,8 +107,15 @@ xls_write_row('Costo', row, (
     'ODOO',
     'Diff.',
     'Status',
-    ))
+    ), xls_format['header'])
 
+xls_row_width('Costo', [
+    10, 10, 
+    10, 2, 
+    10, 10, 5, 
+    10, 40, 
+    15, 15, 15, 5,
+    ])
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
 # -----------------------------------------------------------------------------
@@ -110,7 +155,10 @@ def get_last_cost(raw_material_price, default_code, job_date, last_history):
         
     row = counter['Ultimo']
     counter['Ultimo'] += 1
-    xls_write_row('Ultimo', row, (comment, default_code, job_date, date, last))
+    xls_write_row(
+        'Ultimo', row, 
+        (comment, default_code, job_date, date, last),
+        xls_format['text'])
     return last
     
 def get_cost(mrp, raw_material_price, current_cl, last_history):
@@ -311,6 +359,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
 
             mrp.name,
             len(unload_document), # Number of CL
+
             document[4], # MRP total
             total_unload, # Q. unload
             weight_status,
@@ -356,24 +405,25 @@ for line in open('ultimo.csv', 'r'):
 # Load Last cost:
 # -----------------------------------------------------------------------------
 raw_material_price = {}
-for line in open('bfpan.csv', 'r'):
-    line = line.strip()
-    if not line:
-        continue
-    row = line.split(';')
+for filename in ('bfpan18.csv', 'bfpan19.csv'):
+    for line in open(filename, 'r'):
+        line = line.strip()
+        if not line:
+            continue
+        row = line.split(';')
 
-    # Extract data:
-    date = row[2].strip()
-    default_code = row[5].strip()
-    try:
-        cost = float(row[8].strip().replace(',', '.'))
-    except:
-        cost = 0.0
-        print 'No price: %s' % line
-    
-    if default_code not in raw_material_price:
-        raw_material_price[default_code] = {}
-    raw_material_price[default_code][date] = cost
+        # Extract data:
+        date = row[2].strip()
+        default_code = row[5].strip()
+        try:
+            cost = float(row[8].strip().replace(',', '.'))
+        except:
+            cost = 0.0
+            print 'No price: %s' % line
+        
+        if default_code not in raw_material_price:
+            raw_material_price[default_code] = {}
+        raw_material_price[default_code][date] = cost
 
 # -----------------------------------------------------------------------------
 # Load current CL status
@@ -382,7 +432,7 @@ current_cl = {}
 cl_mexal = set()
 cl_odoo = set()
 
-for line in open('cl2019.csv', 'r'):
+for line in open('clpan19.csv', 'r'):
     line = line.strip()
     if not line:
         continue
