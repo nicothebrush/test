@@ -53,7 +53,7 @@ WB = xlsxwriter.Workbook(file_out)
 xls_format = {
     'header': WB.add_format({
         'bold': True,
-        'font_name': 'Arial',
+        'font_name': 'Verdana',
         'font_size': 9,
         'align': 'center',
         'bg_color': 'EEEEEE',
@@ -61,7 +61,7 @@ xls_format = {
         #'num_format': '0.00',
         }),
     'text': WB.add_format({
-        'font_name': 'Arial',
+        'font_name': 'Verdana',
         'font_size': 9,
         'align': 'center',
         #'bg_color': 'EEEEEE',
@@ -69,7 +69,7 @@ xls_format = {
         #'num_format': '0.00',
         }),
     'number': WB.add_format({
-        'font_name': 'Arial',
+        'font_name': 'Verdana',
         'font_size': 9,
         'align': 'center',
         #'bg_color': 'EEEEEE',
@@ -331,16 +331,19 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
 
         # Difference status:
         difference = mrp_current_cost - unload_cost
-        if difference <= 0.03:
+        if abs(difference) <= 0.03:
             status = ''
-        elif difference <= 1.0:
+        elif abs(difference) <= 1.0:
             status = 'X'
-        elif difference <= 10.0:
+        elif abs(difference) <= 10.0:
             status = 'XX'
-        elif difference <= 100.0:
+        elif abs(difference) <= 100.0:
             status = 'XXX'
-        elif difference <= 1000.0:
+        elif abs(difference) <= 1000.0:
             status = 'XXXX'
+        else:    
+            status = 'XXXXX'
+            
         
         # Weight status:
         if (abs(total_unload - document[4]) / document[4]) > 0.1:
@@ -369,7 +372,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
             unload_cost, # ODOO
             mrp_current_cost - unload_cost,
             status,
-            ))
+            ), xls_format['text'])
         print row, document[0], document[1], unload_cost
     return res    
 
@@ -386,7 +389,7 @@ odoo = erppeek.Client(
 print 'Connect with ODOO: %s' % odoo    
 
 last_history = {}
-for line in open('ultimo.csv', 'r'):
+for line in open('./data/ultimo.csv', 'r'):
     line = line.strip()
     if not line:
         continue
@@ -405,7 +408,7 @@ for line in open('ultimo.csv', 'r'):
 # Load Last cost:
 # -----------------------------------------------------------------------------
 raw_material_price = {}
-for filename in ('bfpan18.csv', 'bfpan19.csv'):
+for filename in ('./data/bfpan18.csv', './data/bfpan19.csv'):
     for line in open(filename, 'r'):
         line = line.strip()
         if not line:
@@ -416,7 +419,7 @@ for filename in ('bfpan18.csv', 'bfpan19.csv'):
         date = row[2].strip()
         default_code = row[5].strip()
         try:
-            cost = float(row[8].strip().replace(',', '.'))
+            cost = float(row[9].strip().replace(',', '.'))
         except:
             cost = 0.0
             print 'No price: %s' % line
@@ -432,7 +435,7 @@ current_cl = {}
 cl_mexal = set()
 cl_odoo = set()
 
-for line in open('clpan19.csv', 'r'):
+for line in open('./data/clpan19.csv', 'r'):
     line = line.strip()
     if not line:
         continue
@@ -442,7 +445,7 @@ for line in open('clpan19.csv', 'r'):
     number = cl_mexal.add(row[1].strip())
     default_code = row[5].strip()
     try:
-        cost = float(row[8].strip().replace(',', '.'))
+        cost = float(row[9].strip().replace(',', '.'))
     except:
         cost = 0.0
         print 'CL No price: %s' % line
