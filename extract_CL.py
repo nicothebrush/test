@@ -86,14 +86,12 @@ WS = {
     'Ultimo': WB.add_worksheet('Ultimo'),
     }
 counter = {
-    'Costo': 0,
-    'Ultimo': 0, 
+    'Costo': 1,
+    'Ultimo': 1, 
     }    
 
-# Header
-row = counter['Costo']
-counter['Costo'] += 1
-xls_write_row('Costo', row, (
+# Header Costo
+xls_write_row('Costo', 0, (
     'CL', 'Q.',
     'MRP', '#',
     'MRP Q.', 'Q. scar.', 'Stato',    
@@ -110,6 +108,20 @@ xls_row_width('Costo', [
     15, 15, 15, 5,
     50,
     ])
+
+# Header Ultimo    
+xls_write_row('Ultimo', 0, (
+    'Commento',
+    'Codice',
+    'Data lav.',
+    'Data BF',
+    'Costo',
+    ), xls_format['header'])
+
+xls_row_width('Ultimo', [
+    30, 15, 10, 10, 12,
+    ])
+
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
 # -----------------------------------------------------------------------------
@@ -239,11 +251,12 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                 cost_detail_subtotal += subtotal
                                     
                 cost_detail += \
-                    u' - %s: EUR %s x q. %s = %s\n' % (
+                    u' - %s: EUR %s x q. %s = %s %s\n' % (
                         default_code,
                         last_cost,
                         unload.quantity,
                         subtotal,
+                        '***' if not last_cost else '',
                         )
             except:
                 warning.append('Error calculating unload lavoration')                
@@ -276,12 +289,13 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                     cost_detail_subtotal += subtotal
                         
                 cost_detail += \
-                    u' - Imballo [%s] %s: EUR %s x q. %s = %s\n' % (
+                    u' - Imballo [%s] %s: EUR %s x q. %s = %s %s\n' % (
                         l.name,
                         link_product.default_code or '?',
                         last_cost,
                         load.ul_qty,
                         subtotal,
+                        '***' if not last_cost else '',
                         )
             except:
                 warning.append('Error calculating package price')
@@ -305,12 +319,13 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
                     unload_cost_total += subtotal
                     cost_detail_subtotal += subtotal
                     cost_detail += \
-                        u' - Pallet [%s] %s: EUR %s x q. %s = %s \n' % (
+                        u' - Pallet [%s] %s: EUR %s x q. %s = %s %s\n' % (
                             l.name,
                             pallet_in.default_code or '?',
                             last_cost,
                             load.pallet_qty,
                             subtotal,
+                            '***' if not last_cost else '',
                             )
             except:
                 warning.append('Error calculating pallet price')
