@@ -347,8 +347,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history):
         elif abs(difference) <= 1000.0:
             status = 'XXXX'
         else:    
-            status = 'XXXXX'
-            
+            status = 'XXXXX'            
         
         # Weight status:
         if (abs(total_unload - document[4]) / document[4]) > 0.1:
@@ -395,7 +394,7 @@ odoo = erppeek.Client(
 print 'Connect with ODOO: %s' % odoo    
 
 last_history = {}
-for line in open('./data/ultimo.csv', 'r'):
+for line in open('./data/cuppan.csv', 'r'):
     line = line.strip()
     if not line:
         continue
@@ -456,6 +455,7 @@ for line in open('./data/clpan19.csv', 'r'):
         cost = 0.0
         print 'CL No price: %s' % line
     current_cl[default_code] = cost
+    
 # -----------------------------------------------------------------------------
 # Check production
 # -----------------------------------------------------------------------------
