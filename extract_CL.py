@@ -405,8 +405,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         mrp_current_cost = current_cl.get(document[0], 0.0)
 
         # Check ODOO not in Mexal:
-        if document[0] not in current_cl and document[0] >= 26667 and \
-                document[0] <= 28247:
+        if document[0] not in current_cl and document[0] >= '26667' and \
+                document[0] <= '28247':
             cl_not_in_mexal.append(document[0])
             continue    
 
