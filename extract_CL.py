@@ -553,7 +553,7 @@ for line in open('./data/clpan19.csv', 'r'):
     row = line.split(';')
 
     # Extract data:
-    cl = row[1].strip()
+    cl_number = row[1].strip()
     number = cl_mexal.add(cl_number)
     default_code = row[5].strip()
     try:
