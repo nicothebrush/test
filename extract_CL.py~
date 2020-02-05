@@ -64,9 +64,6 @@ def extract_price_mrp(mrp):
 
 # Open file and write header
 csv_lines = []
-file_csv = open('mexal.csv', 'w')
-file_csv.write(
- 'Riga      |CL                  |Attuale        |Nuovo          \r\n')
 
 file_out = 'log.xlsx'
 WB = xlsxwriter.Workbook(file_out)
@@ -106,7 +103,9 @@ WS = {
     'Costo': WB.add_worksheet('Costo'),
     'Ultimo': WB.add_worksheet('Ultimo'),
     'Senza': WB.add_worksheet('Senza'),
+    'Mexal': WB.add_worksheet('Mexal'),    
     }
+
 counter = {
     'Costo': 1,
     'Ultimo': 1, 
@@ -145,6 +144,8 @@ xls_row_width('Ultimo', [
     ])
 
 empty_cost = []
+cl_not_in_mexal = []
+
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
 # -----------------------------------------------------------------------------
@@ -402,7 +403,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         mrp_current_cost = current_cl.get(document[0], 0.0)
 
         if not mrp_current_cost:
-            print 'CL %s Not in Mexal' % document[0]
+            # print 'CL %s Not in Mexal' % document[0]
+            cl_not_in_mexal.append(document[0])
             continue    
 
         res.add(document[3]) # CL code
@@ -588,17 +590,36 @@ for mrp in mrp_pool.browse(mrp_ids):
 print 'Differenza ODOO - Mexal', cl_odoo.difference(cl_mexal)
 print 'Differenza Mexal - ODOO', cl_mexal.difference(cl_odoo)
 
-row = -1
 
+# -----------------------------------------------------------------------------
+# Empty cost page:
+# -----------------------------------------------------------------------------
+row = -1
 for empty in empty_cost:
     row += 1 
     xls_write_row('Senza', row, (
         empty,
         ), xls_format['text'])
-    
+
+# -----------------------------------------------------------------------------
+# Empty no CL in Mexal:
+# -----------------------------------------------------------------------------
+row = -1
+for cl_number in cl_not_in_mexal:
+    row += 1 
+    xls_write_row('Mexal', row, (
+        cl_number,
+        ), xls_format['text'])
+
 WB.close()
 
+# -----------------------------------------------------------------------------
 # Export CSV line sorted:
+# -----------------------------------------------------------------------------
+file_csv = open('mexal.csv', 'w')
+file_csv.write(
+ 'CL                  |Attuale        |Nuovo          \r\n')
+
 for line in sorted(csv_lines):
     file_csv.write(line)
 
