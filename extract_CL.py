@@ -545,7 +545,7 @@ for filename in ('./data/bfpan18.csv', './data/bfpan19.csv'):
 current_cl = {}
 cl_mexal = set()
 cl_odoo = set()
-
+import pdb; pdb.set_trace()
 for line in open('./data/clpan19.csv', 'r'):
     line = line.strip()
     if not line:
