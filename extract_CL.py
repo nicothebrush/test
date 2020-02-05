@@ -554,14 +554,14 @@ for line in open('./data/clpan19.csv', 'r'):
 
     # Extract data:
     cl_number = row[1].strip()
-    number = cl_mexal.add(cl_number)
+    cl_mexal.add(cl_number)
     default_code = row[5].strip()
     try:
         cost = float(row[9].strip().replace(',', '.'))
     except:
         cost = 0.0
         print 'CL No price: %s' % line
-    current_cl[number] = cost
+    current_cl[cl_number] = cost
     
 # -----------------------------------------------------------------------------
 # Check production
