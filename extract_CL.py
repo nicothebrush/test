@@ -224,9 +224,9 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     wc = False
     for l in mrp.workcenter_lines:
         if l.state != 'done':
-            print 'MRP %s [Product: %s] %s Not in done state' % (
-                mrp.name, mrp_code,  l.name)
-            continue
+            warning.append('MRP %s [Product: %s] %s Not in done state' % (
+                mrp.name, mrp_code,  l.name))
+            # continue
 
         if not wc:
             wc = l.workcenter_id
@@ -392,6 +392,9 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     cost_detail += u'EUR %s : q. %s = EUR/unit %s (carico)\n' % (
             unload_cost_total, total, unload_cost)
 
+    # -------------------------------------------------------------------------
+    # CL Unload document:
+    # -------------------------------------------------------------------------
     res = set()
     for document in unload_document:
         # Extract Mexal cost from CL:
