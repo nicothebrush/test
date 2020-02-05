@@ -401,7 +401,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         mrp_current_cost = current_cl.get(document[0], 0.0)
 
         if not mrp_current_cost:
-            print 'CL %s Not in Mexal' % document[1]
+            print 'CL %s Not in Mexal' % document[0]
             continue    
 
         res.add(document[3]) # CL code
