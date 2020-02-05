@@ -215,8 +215,6 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     mrp_cost = extract_price_mrp(mrp)  # Extract cost from mrp detail
     mrp_code = mrp.product_id.default_code
 
-    mrp_current_cost = current_cl.get(mrp_code, 0.0)
-    
     cost_detail = u'' # To update MRP at the end of procedure
     cost_detail_subtotal = unload_cost_total = total = total_unload = 0.0
     
@@ -393,8 +391,11 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     cost_detail += u'EUR %s : q. %s = EUR/unit %s (carico)\n' % (
             unload_cost_total, total, unload_cost)
 
-    res = set()    
-    for document in unload_document:        
+    res = set()
+    for document in unload_document:
+        # Extract Mexal cost from CL:
+        mrp_current_cost = current_cl.get(document[0], 0.0)
+
         if not mrp_current_cost:
             print 'No Mexal'
             continue    
@@ -559,7 +560,7 @@ for line in open('./data/clpan19.csv', 'r'):
     except:
         cost = 0.0
         print 'CL No price: %s' % line
-    current_cl[default_code] = cost
+    current_cl[number] = cost
     
 # -----------------------------------------------------------------------------
 # Check production
@@ -568,7 +569,7 @@ mrp_pool = odoo.model('mrp.production')
 
 i = 0
 mrp_ids = mrp_pool.search([
-    ('date_planned', '>=', '2019-01-01'),
+    ('date_planned', '>=', '2018-11-01'),
     ])
 if demo:
     mrp_ids = mrp_ids[:2]
