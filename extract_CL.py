@@ -467,7 +467,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
             document[0],
             mrp_current_cost,
             unload_cost,
-            )
+            ))
 
         # Terminal log:
         print row, document[0], document[1]
