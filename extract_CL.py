@@ -118,7 +118,7 @@ xls_write_row('Costo', 0, (
     ), xls_format['header'])
 
 xls_row_width('Costo', [
-    10, 10, 18
+    10, 10, 18,
     10, 2, 
     10, 10, 8, 5, 
     10, 40, 40,
