@@ -145,6 +145,7 @@ xls_row_width('Ultimo', [
 
 empty_cost = []
 cl_not_in_mexal = []
+#cl_not_in_odoo = []
 
 # -----------------------------------------------------------------------------
 # Read configuration parameter:
@@ -402,8 +403,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         # Extract Mexal cost from CL:
         mrp_current_cost = current_cl.get(document[0], 0.0)
 
-        if not mrp_current_cost:
-            # print 'CL %s Not in Mexal' % document[0]
+        if document[0] not in current_cl:
             cl_not_in_mexal.append(document[0])
             continue    
 
