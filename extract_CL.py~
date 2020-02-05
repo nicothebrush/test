@@ -118,7 +118,7 @@ xls_write_row('Costo', 0, (
     ), xls_format['header'])
 
 xls_row_width('Costo', [
-    10, 10, 18
+    10, 10, 18,
     10, 2, 
     10, 10, 8, 5, 
     10, 40, 40,
@@ -423,6 +423,10 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         row = counter['Costo']
         counter['Costo'] += 1
 
+        # Clean original detail:
+        odoo_cost_detail = mrp.cost_detail.replace('<br/>', '\n').replace(
+            '<b>', '\n').replace('</b>', '\n')
+            
         # Write line:
         xls_write_row('Costo', row, (        
             document[0], # CL
