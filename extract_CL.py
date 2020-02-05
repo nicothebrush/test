@@ -424,8 +424,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         counter['Costo'] += 1
 
         # Clean original detail:
-        odoo_cost_detail = mrp.cost_detail.replace('<br/>', '\n').replace(
-            '<b>', '\n').replace('</b>', '\n')
+        odoo_cost_detail = (mrp.cost_detail or '').replace(
+            '<br/>', '\n').replace('<b>', '\n').replace('</b>', '\n')
             
         # Write line:
         xls_write_row('Costo', row, (        
