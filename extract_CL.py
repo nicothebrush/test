@@ -553,7 +553,8 @@ for line in open('./data/clpan19.csv', 'r'):
     row = line.split(';')
 
     # Extract data:
-    number = cl_mexal.add(row[1].strip())
+    cl = row[1].strip()
+    number = cl_mexal.add(cl_number)
     default_code = row[5].strip()
     try:
         cost = float(row[9].strip().replace(',', '.'))
@@ -569,7 +570,7 @@ mrp_pool = odoo.model('mrp.production')
 
 i = 0
 mrp_ids = mrp_pool.search([
-    ('date_planned', '>=', '2018-11-01'),
+    ('date_planned', '>=', '2018-12-01'),
     ])
 if demo:
     mrp_ids = mrp_ids[:2]
