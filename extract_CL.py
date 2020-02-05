@@ -109,19 +109,19 @@ counter = {
 
 # Header Costo
 xls_write_row('Costo', 0, (
-    'CL', 'Q.',
+    'CL', 'Q.', 'Prodotto',
     'MRP', '#',
     'MRP scar.', 'MRP car.', 'Diff.', 'Stato',    
-    'Data', 'Detail',    
+    'Data', 'Detail', 'ODOO Detail',
     'Mexal', 'ODOO', 'Diff.', 'Status',
     'Warning',
     ), xls_format['header'])
 
 xls_row_width('Costo', [
-    10, 10, 
+    10, 10, 18
     10, 2, 
     10, 10, 8, 5, 
-    10, 40, 
+    10, 40, 40,
     15, 15, 15, 5,
     50,
     ])
@@ -209,8 +209,9 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     unload_document = []
     
     mrp_cost = extract_price_mrp(mrp)  # Extract cost from mrp detail
+    mrp_code = mrp.product_id.default_code
 
-    mrp_current_cost = current_cl.get(mrp.product_id.default_code, 0.0)
+    mrp_current_cost = current_cl.get(mrp_code, 0.0)
     
     cost_detail = u'' # To update MRP at the end of procedure
     cost_detail_subtotal = unload_cost_total = total = total_unload = 0.0
@@ -426,6 +427,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         xls_write_row('Costo', row, (        
             document[0], # CL
             document[1], # Q. 
+            mrp_code,
 
             mrp.name,
             len(unload_document), # Number of CL
@@ -437,6 +439,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
             
             document[2], # Date
             cost_detail, # Detail
+            mrp.cost_detail, # ODOO detail
             mrp_current_cost, # Mexal
             unload_cost, # ODOO
             mrp_current_cost - unload_cost,
