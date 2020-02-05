@@ -63,6 +63,10 @@ def extract_price_mrp(mrp):
     return res
 
 # Open file and write header
+file_csv = open('mexal.csv', 'w')
+file_csv.write(
+ 'Riga      |CL                  |Attuale        |Nuovo          \r\n')
+
 file_out = 'log.xlsx'
 WB = xlsxwriter.Workbook(file_out)
 
@@ -451,6 +455,13 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
             ', '.join(warning),
             ), xls_format['text'])
         print row, document[0], document[1], unload_cost
+        file_csv.write('%10s|%-20s|%15.5f|%15.5f\r\n' % (
+            row,
+            document[0],
+            mrp_current_cost,
+            unload_cost,
+            ))
+        file_csv.flush()    
     return res    
 
 # -----------------------------------------------------------------------------
