@@ -224,7 +224,8 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     wc = False
     for l in mrp.workcenter_lines:
         if l.state != 'done':
-            print '%s Not in done state' % l.name
+            print 'MRP %s [Product: %s] %s Not in done state' % (
+                mrp.name, mrp_code,  l.name)
             continue
 
         if not wc:
@@ -258,7 +259,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     try:
         cost_line = wc.cost_product_id.standard_price or 0.0
     except:
-        print 'No line cost'
+        warning.append('No line Z cost')
         cost_line = 0.0
     
     if not cost_line:    
@@ -397,7 +398,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         mrp_current_cost = current_cl.get(document[0], 0.0)
 
         if not mrp_current_cost:
-            print 'No Mexal'
+            print 'CL %s Not in Mexal' document[1]
             continue    
 
         res.add(document[3]) # CL code
@@ -455,7 +456,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
             status,
             ', '.join(warning),
             ), xls_format['text'])
-        print row, document[0], document[1], unload_cost
+            
         file_csv.write('%10s|%-20s|%15.5f|%15.5f\r\n' % (
             row,
             document[0],
@@ -463,6 +464,9 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
             unload_cost,
             ))
         file_csv.flush()    
+
+        # Terminal log:
+        print row, document[0], document[1]
     return res    
 
 # -----------------------------------------------------------------------------
@@ -545,7 +549,6 @@ for filename in ('./data/bfpan18.csv', './data/bfpan19.csv'):
 current_cl = {}
 cl_mexal = set()
 cl_odoo = set()
-import pdb; pdb.set_trace()
 for line in open('./data/clpan19.csv', 'r'):
     line = line.strip()
     if not line:
