@@ -100,6 +100,7 @@ xls_format = {
 WS = {
     'Costo': WB.add_worksheet('Costo'),
     'Ultimo': WB.add_worksheet('Ultimo'),
+    'Senza': WB.add_worksheet('Senza'),
     }
 counter = {
     'Costo': 1,
@@ -562,4 +563,12 @@ for mrp in mrp_pool.browse(mrp_ids):
 print 'Differenza ODOO - Mexal', cl_odoo.difference(cl_mexal)
 print 'Differenza Mexal - ODOO', cl_mexal.difference(cl_odoo)
 
+row = -1
+
+for empty in empty_cost:
+    row += 1 
+    xls_write_row('Senza', row, (
+        empty,
+        ), xls_format['text'])
+    
 WB.close()    

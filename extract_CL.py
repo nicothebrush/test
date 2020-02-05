@@ -567,7 +567,7 @@ row = -1
 
 for empty in empty_cost:
     row += 1 
-    xls_write_row('Ultimo', row, (
+    xls_write_row('Senza', row, (
         empty,
         ), xls_format['text'])
     
