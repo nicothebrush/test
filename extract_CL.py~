@@ -464,7 +464,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
             total_unload, # Q. unload
             document[4], # MRP total
             weight_difference, 
-            0 if not total_unload else document[4] / total_unload
+            0 if not total_unload else document[4] / total_unload,
             weight_status,
             '',             
             
