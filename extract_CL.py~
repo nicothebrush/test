@@ -116,7 +116,7 @@ counter = {
 xls_write_row('Costo', 0, (
     'CL', 'Q.', 'Prodotto',
     'MRP', '#',
-    'MRP scar.', 'MRP car.', 'Diff.', 'Stato',    
+    'MRP scar.', 'MRP car.', 'Diff.', 'Resa', 'Stato', 'Escludi',
     'Data', 'Detail', 'ODOO Detail',
     'Mexal', 'ODOO', 'Diff.', 'Status',
     'Warning',
@@ -125,7 +125,7 @@ xls_write_row('Costo', 0, (
 xls_row_width('Costo', [
     10, 10, 18,
     10, 2, 
-    10, 10, 8, 5, 
+    10, 10, 8, 5, 5, 5, 
     10, 40, 40,
     15, 15, 15, 5,
     50,
@@ -214,7 +214,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     """ Get total for production closed
     """
     warning = []
-    unload_document = []
+    cl_load_document = []
     
     mrp_cost = extract_price_mrp(mrp)  # Extract cost from mrp detail
     mrp_code = mrp.product_id.default_code
@@ -226,7 +226,13 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     cost_detail += u'Lavorazioni toccate:\n'
     cost_line_ref = u''
     wc = False
+    
+    # Wordk job:
     for l in mrp.workcenter_lines:
+        if l.state == 'cancel':
+            print ('Jump cancel work job: %s' % l.name)
+            continue
+        
         if l.state != 'done':
             warning.append('MRP %s [Product: %s] %s Not in done state' % (
                 mrp.name, mrp_code,  l.name))
@@ -247,7 +253,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     # Loop for print part (for total purpose)
     for l in mrp.workcenter_lines:
         for partial in l.load_ids:
-            unload_document.append((
+            cl_load_document.append((
                 partial.accounting_cl_code,
                 partial.product_qty,
                 l.real_date_planned[:10],
@@ -400,7 +406,7 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
     # CL Unload document:
     # -------------------------------------------------------------------------
     res = set()
-    for document in unload_document:
+    for document in cl_load_document:
         # Extract Mexal cost from CL:
         mrp_current_cost = current_cl.get(document[0], 0.0)
 
@@ -446,19 +452,21 @@ def get_cost(mrp, raw_material_price, current_cl, last_history, odoo_standard):
         odoo_cost_detail = (mrp.cost_detail or '').replace(
             '<br/>', '\n').replace('<b>', '\n').replace('</b>', '\n')
             
-        # Write line:
+        # Write line:        
         xls_write_row('Costo', row, (        
             document[0], # CL
             document[1], # Q. 
             mrp_code,
 
             mrp.name,
-            len(unload_document), # Number of CL
+            len(cl_load_document), # Number of CL
 
             total_unload, # Q. unload
             document[4], # MRP total
             weight_difference, 
+            0 if not total_unload else document[4] / total_unload
             weight_status,
+            '',             
             
             document[2], # Date
             cost_detail, # Detail
